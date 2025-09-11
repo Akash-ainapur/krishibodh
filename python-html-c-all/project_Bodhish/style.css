@@ -1,0 +1,117 @@
+:root {
+    --bg-color: #1a1a1a;
+    --text-color: #ffffff;
+    --accent-color: #00ff7f;
+    --secondary-bg-color: #2a2a2a;
+    --border-color: #444444;
+    --hover-accent-color: #00cc66;
+  }
+  
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  
+  h2 {
+    color: var(--accent-color);
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 5px;
+    margin-bottom: 30px;
+  }
+  
+  button {
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    min-width: 120px;
+  }
+  
+  button:hover {
+    background-color: var(--hover-accent-color);
+    transform: scale(1.03);
+  }
+  
+  button:active {
+    transform: scale(0.98);
+  }
+  
+  #status-area {
+    background-color: var(--secondary-bg-color);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    margin-top: 25px;
+    min-height: 40px;
+    width: 80%;
+    max-width: 600px;
+    font-family: 'Courier New', Courier, monospace;
+    border-radius: 5px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  
+  /* Container for button sections */
+  .button-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 15px;
+    width: 100%;
+    max-width: 600px;
+  }
+  
+  /* Control button overrides */
+  .control-buttons button {
+    background-color: var(--secondary-bg-color);
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+  }
+  
+  .control-buttons button:hover {
+    background-color: var(--accent-color);
+    color: var(--secondary-bg-color);
+  }
+  
+  /* AI input command block */
+  .ai-command {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 600px;
+    margin-top: 15px;
+  }
+  
+  .ai-command input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    background-color: var(--secondary-bg-color);
+    color: var(--text-color);
+    font-size: 1em;
+  }
+  
+  .ai-command input::placeholder {
+    color: #888;
+  }
+  
+  .ai-command button {
+    min-width: 100px;
+  }
+  

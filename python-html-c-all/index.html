@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>KrishiBodh Control Panel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h2>KrishiBodh Control Panel</h2>
+
+  <div class="button-container plant-buttons">
+    <button id="plant1" onclick="sendCoords(800,800,15000)">🌱 Plant 1</button>
+    <button id="plant2" onclick="sendCoords(2400,1200,15000)">🌱 Plant 2</button> <!-- Corrected spacing in coords -->
+  </div>
+
+  <div class="button-container control-buttons">
+    <button id="home" onclick="sendCoords(0, 0, 0)">🏠 Home</button>
+    <button id="connect" onclick="connectToArduino()">🔌 Connect</button> <!-- Shortened text -->
+  </div>
+
+  <div id="status-area">
+    Waiting for connection...
+  </div>
+
+  <script>
+    let port;
+    let writer;
+    let reader; // Added reader variable
+    const statusArea = document.getElementById('status-area'); // Get status area element
+
+    function updateStatus(message) {
+      console.log("Status Update:", message); // Log status for debugging
+      statusArea.textContent = message;
+    }
+
+    async function connectToArduino() {
+      updateStatus("Attempting connection...");
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600 });
+
+        // Setup Writer
+        const encoder = new TextEncoderStream();
+        const writableStreamClosed = encoder.readable.pipeTo(port.writable);
+        writer = encoder.writable.getWriter();
+
+        // Setup Reader
+        const decoder = new TextDecoderStream();
+        const readableStreamClosed = port.readable.pipeTo(decoder.writable);
+        reader = decoder.readable.getReader();
+
+        updateStatus("Connected! Waiting for Arduino initialization...");
+
+        // Start reading loop
+        readLoop();
+
+      } catch (err) {
+        updateStatus("Connection Error: " + err.message);
+        console.error(err);
+      }
+    }
+
+    async function readLoop() {
+      try {
+        let lineBuffer = '';
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) {
+            // Allow the serial port to be closed later.
+            reader.releaseLock();
+            updateStatus("Arduino disconnected.");
+            break;
+          }
+          if (value) {
+            lineBuffer += value;
+            // Process lines separated by newline characters
+            let lines = lineBuffer.split('\n');
+            lineBuffer = lines.pop(); // Keep the last partial line in buffer
+
+            lines.forEach(line => {
+              line = line.trim(); // Remove leading/trailing whitespace
+              if (line.startsWith("STATUS:")) {
+                updateStatus(line.substring(7).trim()); // Display status, removing prefix
+              } else if (line) {
+                console.log("Received (ignored):", line); // Log other messages
+              }
+            });
+          }
+        }
+      } catch (error) {
+        updateStatus("Read Error: " + error.message);
+        console.error(error);
+        // Optionally try to reconnect or handle error
+      }
+    }
+
+
+    async function sendCoords(x, y, z) {
+      if (!writer) {
+        updateStatus("Error: Not connected. Please connect first.");
+        return;
+      }
+
+      try {
+        updateStatus(`Sending X: ${x}...`);
+        await writer.write(`${x}\n`);
+        // Small delay might not be necessary if Arduino handles input buffering well
+        // await new Promise(r => setTimeout(r, 50));
+        updateStatus(`Sending Y: ${y}...`);
+        await writer.write(`${y}\n`);
+        // await new Promise(r => setTimeout(r, 50));
+        updateStatus(`Sending Z: ${z}...`);
+        await writer.write(`${z}\n`);
+        updateStatus(`Coordinates (${x}, ${y}, ${z}) sent. Waiting for Arduino...`);
+        console.log("Sent:", x, y, z);
+      } catch (error) {
+         updateStatus("Send Error: " + error.message);
+         console.error("Send Error:", error);
+         // Handle potential write errors (e.g., port closed)
+      }
+    }
+
+    // Optional: Handle closing the port when the page unloads
+    window.addEventListener('beforeunload', async () => {
+      if (reader) {
+        await reader.cancel(); // Cancel pending reads
+        // reader.releaseLock(); // Already released in readLoop 'done' case
+      }
+      if (writer) {
+         // await writer.close(); // Closing the writer might be handled by stream piping
+         writer.releaseLock();
+      }
+      if (port && port.readable) {
+         // await readableStreamClosed.catch(() => {}); // Ignore errors during closing
+      }
+       if (port && port.writable) {
+         // await writableStreamClosed.catch(() => {}); // Ignore errors during closing
+      }
+      if (port) {
+        await port.close();
+        console.log("Serial port closed.");
+      }
+    });
+  </script>
+</body>
+</html>
